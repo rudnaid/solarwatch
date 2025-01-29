@@ -1,4 +1,4 @@
-package com.codecool.solarwatch.config;
+package com.codecool.solarwatch.configuration;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
