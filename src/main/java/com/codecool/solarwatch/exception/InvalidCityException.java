@@ -1,7 +1,7 @@
 package com.codecool.solarwatch.exception;
 
-public class CityNotFoundException extends RuntimeException {
-    public CityNotFoundException() {
-        super("City not found");
+public class InvalidCityException extends RuntimeException {
+    public InvalidCityException() {
+        super("Invalid city name provided");
     }
 }
