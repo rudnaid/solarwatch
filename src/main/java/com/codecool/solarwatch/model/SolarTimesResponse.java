@@ -1,7 +1,9 @@
 package com.codecool.solarwatch.model;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record SolarTimes(String city, LocalDate date, LocalTime sunriseTime, LocalTime sunsetTime) {
-}
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record SolarTimesResponse(
+        @JsonProperty("results") SolarTimes results
+) { }

@@ -1,4 +1,10 @@
 package com.codecool.solarwatch.model;
 
-public class SolarTimes {
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import java.time.ZonedDateTime;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record SolarTimes(ZonedDateTime sunrise, ZonedDateTime sunset) {
+
 }

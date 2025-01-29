@@ -1,4 +1,7 @@
 package com.codecool.solarwatch.model;
 
-public record CityData(String city, double latitude, double longitude) {
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record GeoCoordinates(double lat, double lon) {
 }
