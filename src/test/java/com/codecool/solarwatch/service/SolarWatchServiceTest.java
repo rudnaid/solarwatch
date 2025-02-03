@@ -1,0 +1,69 @@
+package com.codecool.solarwatch.service;
+
+import com.codecool.solarwatch.client.GeoCodingApiClient;
+import com.codecool.solarwatch.client.SunriseSunsetApiClient;
+import com.codecool.solarwatch.exception.InvalidCityException;
+import com.codecool.solarwatch.model.GeoCoordinates;
+import com.codecool.solarwatch.model.SolarTimes;
+import com.codecool.solarwatch.model.SolarTimesResponse;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.ZonedDateTime;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+public class SolarWatchServiceTest {
+
+    @Mock
+    private GeoCodingApiClient geoCodingApiClient;
+
+    @Mock
+    private SunriseSunsetApiClient sunriseSunsetApiClient;
+
+    @InjectMocks
+    private SolarWatchService solarWatchService;
+
+    @Test
+    void getSolarTimes_GivenValidCity_ReturnsSolarTimes() {
+        String city = "testCity";
+        String date = "2025-01-30";
+        String tzid = "testTZID";
+        int formatted = 0;
+
+        ZonedDateTime mockSunrise = ZonedDateTime.parse("2015-05-21T05:05:35+00:00");
+        ZonedDateTime mockSunset = ZonedDateTime.parse("2015-05-21T19:22:59+00:00");
+
+        SolarTimes mockSolarTimes = new SolarTimes(mockSunrise, mockSunset);
+        SolarTimesResponse mockSolarTimesResponse = new SolarTimesResponse(mockSolarTimes);
+
+        when(solarWatchService.getSolarTimes(city, date, tzid, formatted)).thenReturn(mockSolarTimesResponse);
+
+        SolarTimesResponse response = solarWatchService.getSolarTimes(city, date, tzid, formatted);
+        SolarTimes solarTimes = response.results();
+
+        assertNotNull(response);
+        assertEquals(mockSolarTimes, solarTimes);
+    }
+
+    @Test
+    void getSolarTimes_GivenInvalidCity_ThrowsInvalidCityException() {
+        String city = "InvalidCity";
+        String date = "2025-01-30";
+        String tzid = "testTZID";
+        int formatted = 0;
+
+        GeoCoordinates mockCoordinates = new GeoCoordinates(53.33, 23.43);
+
+        when(geoCodingApiClient.getGeoCoordinatesForCity(city)).thenReturn(mockCoordinates);
+
+        when(solarWatchService.getSolarTimes(city, date, tzid, formatted)).thenThrow(InvalidCityException.class);
+
+        assertThrows(InvalidCityException.class, () -> solarWatchService.getSolarTimes(city, date, tzid, formatted));
+    }
+}
