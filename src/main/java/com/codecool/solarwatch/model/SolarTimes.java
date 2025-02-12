@@ -6,5 +6,4 @@ import java.time.ZonedDateTime;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record SolarTimes(ZonedDateTime sunrise, ZonedDateTime sunset) {
-
 }
