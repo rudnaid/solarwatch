@@ -1,7 +1,7 @@
 package com.codecool.solarwatch.client;
 
 import com.codecool.solarwatch.exception.InvalidCityException;
-import com.codecool.solarwatch.model.GeoCoordinates;
+import com.codecool.solarwatch.model.GeoCodingResponseDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -17,15 +17,9 @@ public class GeoCodingApiClient {
         this.apiKey = apiKey;
     }
 
-    public GeoCoordinates getGeoCoordinatesForCity(String city) {
+    public GeoCodingResponseDTO[] getGeoCoordinatesForCity(String city) {
         String url = String.format("https://api.openweathermap.org/geo/1.0/direct?q=%s&appid=%s", city, apiKey);
 
-        GeoCoordinates[] response = restTemplate.getForObject(url, GeoCoordinates[].class);
-
-        if (response == null || response.length == 0) {
-            throw new InvalidCityException();
-        }
-
-        return response[0];
+        return restTemplate.getForObject(url, GeoCodingResponseDTO[].class);
     }
 }
