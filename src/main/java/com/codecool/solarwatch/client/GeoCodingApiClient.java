@@ -12,7 +12,7 @@ public class GeoCodingApiClient {
     private final String apiKey;
     private final RestTemplate restTemplate;
 
-    public GeoCodingApiClient(RestTemplate restTemplate, @Value("${api.key}") String apiKey) {
+    public GeoCodingApiClient(RestTemplate restTemplate, @Value("${API_KEY}") String apiKey) {
         this.restTemplate = restTemplate;
         this.apiKey = apiKey;
     }
