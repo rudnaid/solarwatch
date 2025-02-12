@@ -29,17 +29,14 @@ public class GeoCodingApiClientTest {
 
     @Test
     void getGeoCoordinatesForCity_GivenValidCity_ReturnsCorrectCoordinates() {
-        // Arrange
         String city = "Berlin";
         String url = String.format("https://api.openweathermap.org/geo/1.0/direct?q=%s&appid=%s", city, apiKey);
         GeoCoordinates[] mockResponse = { new GeoCoordinates(52.52, 13.405) };
 
         when(restTemplate.getForObject(url, GeoCoordinates[].class)).thenReturn(mockResponse);
 
-        // Act
         GeoCoordinates result = geoCodingApiClient.getGeoCoordinatesForCity(city);
 
-        // Assert
         assertNotNull(result);
         assertEquals(52.52, result.lat());
         assertEquals(13.405, result.lon());
