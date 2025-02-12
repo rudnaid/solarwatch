@@ -1,22 +1,25 @@
 package com.codecool.solarwatch.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+
+import java.util.List;
 
 @Entity
 public class City {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    
+
     private String id;
     private String name;
     private String country;
     private String state;
     private double lat;
     private double lon;
+
+    @OneToMany(mappedBy = "city")
+    private List<SunriseSunset> sunriseSunsets;
+
 
     public String getName() {
         return name;
@@ -36,5 +39,9 @@ public class City {
 
     public double getLon() {
         return lon;
+    }
+
+    public List<SunriseSunset> getSunriseSunsets() {
+        return sunriseSunsets;
     }
 }
