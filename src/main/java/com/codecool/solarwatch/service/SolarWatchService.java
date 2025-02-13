@@ -3,16 +3,20 @@ package com.codecool.solarwatch.service;
 import com.codecool.solarwatch.client.GeoCodingApiClient;
 import com.codecool.solarwatch.client.SunriseSunsetApiClient;
 import com.codecool.solarwatch.exception.InvalidCityException;
-import com.codecool.solarwatch.model.City;
-import com.codecool.solarwatch.model.GeoCodingResponseDTO;
-import com.codecool.solarwatch.model.SolarTimesResponse;
+import com.codecool.solarwatch.model.*;
 import com.codecool.solarwatch.repository.CityRepository;
 import com.codecool.solarwatch.repository.SunriseSunsetRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
+
 @Service
+@Transactional
 public class SolarWatchService {
     private final GeoCodingApiClient geoCodingApiClient;
     private final SunriseSunsetApiClient sunriseSunsetApiClient;
@@ -52,9 +56,29 @@ public class SolarWatchService {
         }
     }
 
-    public SolarTimesResponse getSolarTimes(String cityName, String date, String tzid, int formatted) {
-        City city = getCityByName(cityName);
+    private SunriseSunset createSunriseSunsetForCity(City city, String tzid, String date, int formatted) {
+        SunriseSunsetResponseDTO response = sunriseSunsetApiClient.getSunriseSunsetByCoordinates(city.getLat(), city.getLon(), tzid, date, formatted);
+        SunriseSunsetDTO times = response.results();
 
-        return sunriseSunsetApiClient.getSunriseSunsetByCoordinates(city.getLat(), city.getLon(), date, tzid, formatted);
+        SunriseSunset sunriseSunset = new SunriseSunset();
+        sunriseSunset.setCity(city);
+        sunriseSunset.setSunrise(times.sunrise());
+        sunriseSunset.setSunset(times.sunset());
+
+        return sunriseSunsetRepository.save(sunriseSunset);
+    }
+
+    public SunriseSunset getSolarTimes(String cityName, String dateString, String tzid, int formatted) {
+        City city = getCityByName(cityName);
+        LocalDate date = LocalDate.parse(dateString, DateTimeFormatter.ISO_LOCAL_DATE);
+
+        Optional<SunriseSunset> sunriseSunset = sunriseSunsetRepository.findByCityAndCreatedAt(city, date);
+
+        if (sunriseSunset.isEmpty()) {
+            SunriseSunset newSunriseSunset = createSunriseSunsetForCity(city, tzid, dateString, formatted);
+            sunriseSunset = Optional.of(sunriseSunsetRepository.save(newSunriseSunset));
+        }
+
+        return sunriseSunset.get();
     }
 }
