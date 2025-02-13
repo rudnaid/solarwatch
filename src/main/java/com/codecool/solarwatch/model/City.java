@@ -1,10 +1,14 @@
 package com.codecool.solarwatch.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
 @Entity
+@Getter
+@Setter
 public class City {
 
     @Id
@@ -20,48 +24,4 @@ public class City {
     @OneToMany(mappedBy = "city")
     private List<SunriseSunset> sunriseSunsets;
 
-
-    public String getName() {
-        return name;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public double getLat() {
-        return lat;
-    }
-
-    public double getLon() {
-        return lon;
-    }
-
-    public List<SunriseSunset> getSunriseSunsets() {
-        return sunriseSunsets;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-    public void setState(String state) {
-        this.state = state;
-    }
-
-    public void setLat(double lat) {
-        this.lat = lat;
-    }
-
-    public void setLon(double lon) {
-        this.lon = lon;
-    }
 }
