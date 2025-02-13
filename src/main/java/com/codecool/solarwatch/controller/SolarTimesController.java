@@ -24,7 +24,7 @@ public class SolarTimesController {
     public ResponseEntity<?> getSolarTimes(
             @RequestParam String city,
             @RequestParam(required = false) String date,
-            @RequestParam(defaultValue = "Europe") String tzid,
+            @RequestParam(defaultValue = "UTC") String tzid,
             @RequestParam(defaultValue = "0") int formatted) {
 
         if (date == null) {
