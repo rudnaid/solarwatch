@@ -1,25 +1,44 @@
 package com.codecool.solarwatch.client;
 
-import com.codecool.solarwatch.exception.InvalidCityException;
 import com.codecool.solarwatch.model.GeoCodingResponseDTO;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 public class GeoCodingApiClient {
 
     private final String apiKey;
-    private final RestTemplate restTemplate;
+    private final WebClient webClient;
 
-    public GeoCodingApiClient(RestTemplate restTemplate, @Value("${API_KEY}") String apiKey) {
-        this.restTemplate = restTemplate;
+    public GeoCodingApiClient(WebClient webClient, @Value("${API_KEY}") String apiKey) {
+        this.webClient = webClient;
         this.apiKey = apiKey;
     }
 
-    public GeoCodingResponseDTO[] getGeoCoordinatesForCity(String city) {
-        String url = String.format("https://api.openweathermap.org/geo/1.0/direct?q=%s&appid=%s", city, apiKey);
+    /**
+     * Call external API to get geo-coordinates for a city based on its name.
+     *
+     * @param city Name of the city to get geo-coordinates of.
+     * @return GeoCodingResponseDTO array which is expected to have one element containing latitude and longitude data.
+     */
 
-        return restTemplate.getForObject(url, GeoCodingResponseDTO[].class);
+    public GeoCodingResponseDTO[] getGeoCoordinatesForCity(String city) {
+
+        String url = UriComponentsBuilder.fromUriString("https://api.openweathermap.org/geo/1.0/direct")
+                .queryParam("q", city)
+                .queryParam("appid", apiKey)
+                .build()
+                .toUriString();
+
+        return webClient.get()
+                .uri(url)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(GeoCodingResponseDTO[].class)
+                .block();
     }
 }
