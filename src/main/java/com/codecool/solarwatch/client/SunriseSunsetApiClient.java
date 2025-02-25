@@ -1,6 +1,6 @@
 package com.codecool.solarwatch.client;
 
-import com.codecool.solarwatch.model.SunriseSunsetResponseDTO;
+import com.codecool.solarwatch.model.dto.SunriseSunsetResponseDTO;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;

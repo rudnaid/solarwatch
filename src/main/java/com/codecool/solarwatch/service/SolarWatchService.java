@@ -2,7 +2,12 @@ package com.codecool.solarwatch.service;
 
 import com.codecool.solarwatch.client.GeoCodingApiClient;
 import com.codecool.solarwatch.client.SunriseSunsetApiClient;
-import com.codecool.solarwatch.model.*;
+import com.codecool.solarwatch.model.dto.CityResponseDTO;
+import com.codecool.solarwatch.model.dto.GeoCodingResponseDTO;
+import com.codecool.solarwatch.model.dto.SunriseSunsetDTO;
+import com.codecool.solarwatch.model.dto.SunriseSunsetResponseDTO;
+import com.codecool.solarwatch.model.entity.City;
+import com.codecool.solarwatch.model.entity.SunriseSunset;
 import com.codecool.solarwatch.repository.CityRepository;
 import com.codecool.solarwatch.repository.SunriseSunsetRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
