@@ -32,14 +32,26 @@ public class SolarWatchService {
         this.sunriseSunsetRepository = sunriseSunsetRepository;
     }
 
-    private City getCityByName(String cityName) {
-        City city = cityRepository.findByName(cityName).orElse(null);
+    /**
+     * Get City entity based on name of city. Searches database for existing data, calls external API if no data was found.
+     *
+     * @param cityName Name of the city.
+     * @return City entity containing name, country, state, latitude and longitude data.
+     */
 
-        if (city == null) {
-            city = createCityFromGeoCodingResponse(cityName);
-        }
-        return city;
+    private City getCityByName(String cityName) {
+        Optional<City> city = cityRepository.findByName(cityName);
+
+        return city.orElseGet(() -> createCityFromGeoCodingResponse(cityName));
     }
+
+
+    /**
+     * Call external API to create a City entity with geo-coding data based on city name.
+     *
+     * @param cityName Name of the city to get geo-coding for.
+     * @return City entity containing name, country, state, latitude and longitude data.
+     */
 
     private City createCityFromGeoCodingResponse(String cityName) {
         GeoCodingResponseDTO[] geoCodingResponse = geoCodingApiClient.getGeoCoordinatesForCity(cityName);
@@ -67,8 +79,9 @@ public class SolarWatchService {
      * @return SunriseSunset entity.
      */
 
-    private SunriseSunset createSunriseSunsetForCity(City city, String tzid, String date, int formatted) {
-        SunriseSunsetResponseDTO response = sunriseSunsetApiClient.getSunriseSunsetByCoordinates(city.getLat(), city.getLon(), date, tzid, formatted);
+    private SunriseSunset createSunriseSunsetForCity(City city, String tzid, LocalDate date, int formatted) {
+        String dateString = date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+        SunriseSunsetResponseDTO response = sunriseSunsetApiClient.getSunriseSunsetByCoordinates(city.getLat(), city.getLon(), dateString, tzid, formatted);
         SunriseSunsetDTO times = response.results();
 
         SunriseSunset sunriseSunset = new SunriseSunset();
@@ -126,8 +139,7 @@ public class SolarWatchService {
         if (sunriseSunset.isPresent()) {
             return convertToCityResponseDTO(city, sunriseSunset.get());
         } else {
-            String dateString = date.format(DateTimeFormatter.ISO_LOCAL_DATE);
-            SunriseSunset newSunriseSunset = createSunriseSunsetForCity(city, tzid, dateString, formatted);
+            SunriseSunset newSunriseSunset = createSunriseSunsetForCity(city, tzid, date, formatted);
             return convertToCityResponseDTO(city, newSunriseSunset);
         }
     }
