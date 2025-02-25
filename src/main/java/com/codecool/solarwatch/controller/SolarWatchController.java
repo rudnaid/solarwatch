@@ -4,10 +4,7 @@ import com.codecool.solarwatch.service.SolarWatchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
@@ -15,20 +12,20 @@ import java.time.format.DateTimeParseException;
 
 @RestController
 @RequestMapping("/api/solarwatch")
-public class SolarTimesController {
+public class SolarWatchController {
     private final SolarWatchService solarWatchService;
 
     @Autowired
-    public SolarTimesController(SolarWatchService solarWatchService) {
+    public SolarWatchController(SolarWatchService solarWatchService) {
         this.solarWatchService = solarWatchService;
     }
 
     /**
      * Provide sunrise/sunset times for a given city.
      *
-     * @param city Name of the city.
-     * @param date Date of requested sunrise/sunset data. When omitted, default is current date.
-     * @param tzid  Time Zone ID.
+     * @param city      Name of the city.
+     * @param date      Date of requested sunrise/sunset data. When omitted, default is current date.
+     * @param tzid      Time Zone ID.
      * @param formatted 0: ZonedDateTime format, 1: YYYY-MM-DD-hhss format.
      * @return CityDTO object wrapped in a ResponseEntity.
      */
