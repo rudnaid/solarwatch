@@ -2,10 +2,7 @@ package com.codecool.solarwatch.service;
 
 import com.codecool.solarwatch.client.GeoCodingApiClient;
 import com.codecool.solarwatch.client.SunriseSunsetApiClient;
-import com.codecool.solarwatch.model.dto.CityResponseDTO;
-import com.codecool.solarwatch.model.dto.GeoCodingResponseDTO;
-import com.codecool.solarwatch.model.dto.SunriseSunsetDTO;
-import com.codecool.solarwatch.model.dto.SunriseSunsetResponseDTO;
+import com.codecool.solarwatch.model.dto.*;
 import com.codecool.solarwatch.model.entity.City;
 import com.codecool.solarwatch.model.entity.SunriseSunset;
 import com.codecool.solarwatch.repository.CityRepository;
@@ -19,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -52,13 +50,13 @@ public class SolarWatchService {
 
 
     /**
-     * Call external API to create a City entity with geo-coding data based on city name.
+     * Call external API to create a City entity with geocoding data based on city name.
      *
-     * @param cityName Name of the city to get geo-coding for.
+     * @param cityName Name of the city to get geocoding for.
      * @return City entity containing name, country, state, latitude and longitude data.
      */
 
-    private City createCityFromGeoCodingResponse(String cityName) {
+    public City createCityFromGeoCodingResponse(String cityName) {
         GeoCodingResponseDTO[] geoCodingResponse = geoCodingApiClient.getGeoCoordinatesForCity(cityName);
 
         if (geoCodingResponse == null || geoCodingResponse.length == 0) {
@@ -105,14 +103,14 @@ public class SolarWatchService {
      * @return CityResponseDTO, containing the cities name, country and sunrise/sunset data.
      */
 
-    private CityResponseDTO convertToCityResponseDTO(City city, SunriseSunset sunriseSunset) {
-        CityResponseDTO cityResponseDTO = new CityResponseDTO();
-        cityResponseDTO.setName(city.getName());
-        cityResponseDTO.setCountry(city.getCountry());
+    private CityDetailsDTO convertToCityDetailsDTO(City city, SunriseSunset sunriseSunset) {
+        CityDetailsDTO cityDetailsDTO = new CityDetailsDTO();
+        cityDetailsDTO.setName(city.getName());
+        cityDetailsDTO.setCountry(city.getCountry());
 
         SunriseSunsetDTO sunriseSunsetDTO = convertToSunriseSunsetDTO(sunriseSunset);
-        cityResponseDTO.setSunriseSunset(sunriseSunsetDTO);
-        return cityResponseDTO;
+        cityDetailsDTO.setSunriseSunset(sunriseSunsetDTO);
+        return cityDetailsDTO;
     }
 
     /**
@@ -126,6 +124,30 @@ public class SolarWatchService {
         return new SunriseSunsetDTO(sunriseSunset.getSunrise(), sunriseSunset.getSunset());
     }
 
+    private CityDTO convertToCityDTO(City city) {
+        CityDTO cityDTO = new CityDTO();
+        cityDTO.setName(city.getName());
+        cityDTO.setCountry(city.getCountry());
+
+        return cityDTO;
+    }
+
+    public CityDTO updateCity(CityDTO city) {
+        Optional<City> existingCity = cityRepository.findByName(city.getName());
+
+        if (existingCity.isPresent()) {
+            City cityToUpdate = existingCity.get();
+            cityToUpdate.setName(city.getName());
+            cityToUpdate.setCountry(city.getCountry());
+
+            cityRepository.save(cityToUpdate);
+
+            return convertToCityDTO(cityToUpdate);
+        }
+
+        throw new NoSuchElementException("City not found");
+    }
+
     /**
      * Get sunrise/sunset data on a given date for a city. Searches database for existing data and calls external API if no data was found.
      *
@@ -136,16 +158,23 @@ public class SolarWatchService {
      * @return CityResponseDTO, containing the cities name, country and sunrise/sunset data.
      */
 
-    public CityResponseDTO getSolarTimes(String cityName, LocalDate date, String tzid, int formatted) {
+    public CityDetailsDTO getSolarTimes(String cityName, LocalDate date, String tzid, int formatted) {
         City city = getCityByName(cityName);
 
         Optional<SunriseSunset> sunriseSunset = sunriseSunsetRepository.findByCityAndDate(city, date);
 
         if (sunriseSunset.isPresent()) {
-            return convertToCityResponseDTO(city, sunriseSunset.get());
+            return convertToCityDetailsDTO(city, sunriseSunset.get());
         } else {
             SunriseSunset newSunriseSunset = createSunriseSunsetForCity(city, tzid, date, formatted);
-            return convertToCityResponseDTO(city, newSunriseSunset);
+            return convertToCityDetailsDTO(city, newSunriseSunset);
         }
+    }
+
+    public void deleteCity(CityDTO city) {
+        City cityToDelete = cityRepository.findByName(city.getName())
+                        .orElseThrow(NoSuchElementException::new);
+
+        cityRepository.delete(cityToDelete);
     }
 }
