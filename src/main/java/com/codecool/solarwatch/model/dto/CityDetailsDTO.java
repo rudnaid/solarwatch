@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CityResponseDTO {
+public class CityDetailsDTO {
     private String name;
     private String country;
     private SunriseSunsetDTO sunriseSunset;
