@@ -1,9 +1,11 @@
 package com.codecool.solarwatch.controller;
 
+import com.codecool.solarwatch.model.dto.CityDTO;
 import com.codecool.solarwatch.service.SolarWatchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -31,6 +33,7 @@ public class SolarWatchController {
      */
 
     @GetMapping("/times")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> getSolarTimes(
             @RequestParam String city,
             @RequestParam(required = false) String date,
@@ -54,4 +57,26 @@ public class SolarWatchController {
         return ResponseEntity.ok(result);
     }
 
+    @PostMapping("/cities")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> addCity(@RequestBody CityDTO city) {
+        var result = solarWatchService.createCityFromGeoCodingResponse(city.getName());
+
+        return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/cities")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateCity(@RequestBody CityDTO city) {
+        var result = solarWatchService.updateCity(city);
+
+        return ResponseEntity.ok(result);
+    }
+
+    @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteCity(@RequestBody CityDTO city) {
+        solarWatchService.deleteCity(city);
+        return ResponseEntity.ok(HttpStatus.OK);
+    }
 }
