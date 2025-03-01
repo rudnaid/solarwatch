@@ -1,6 +1,7 @@
 package com.codecool.solarwatch.controller;
 
 import com.codecool.solarwatch.model.dto.CityDTO;
+import com.codecool.solarwatch.model.dto.SunriseSunsetDTO;
 import com.codecool.solarwatch.service.SolarWatchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -73,10 +74,33 @@ public class SolarWatchController {
         return ResponseEntity.ok(result);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/cities")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteCity(@RequestBody CityDTO city) {
         solarWatchService.deleteCity(city);
         return ResponseEntity.ok(HttpStatus.OK);
+    }
+
+    @PostMapping("/sunrisesunset")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createSunriseSunset(@RequestBody SunriseSunsetDTO sunriseSunset) {
+        var result = solarWatchService.createSunriseSunset(sunriseSunset);
+
+        return ResponseEntity.ok(result);
+    }
+
+
+    @PutMapping("/sunrisesunset/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateSunriseSunset(@PathVariable Long id, @RequestBody SunriseSunsetDTO updatedSunriseSunsetDTO) {
+        var result = solarWatchService.updateSunriseSunset(id, updatedSunriseSunsetDTO);
+        return ResponseEntity.ok(result);
+    }
+
+    @DeleteMapping("/sunrisesunset/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteSunriseSunset(@PathVariable Long id) {
+        solarWatchService.deleteSunriseSunset(id);
+        return ResponseEntity.noContent().build();
     }
 }

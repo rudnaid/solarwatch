@@ -173,8 +173,40 @@ public class SolarWatchService {
 
     public void deleteCity(CityDTO city) {
         City cityToDelete = cityRepository.findByName(city.getName())
-                        .orElseThrow(NoSuchElementException::new);
+                .orElseThrow(() -> new NoSuchElementException("City not found"));
 
         cityRepository.delete(cityToDelete);
+    }
+
+    public SunriseSunsetDTO createSunriseSunset(SunriseSunsetDTO sunriseSunsetDTO) {
+        SunriseSunset sunriseSunset = new SunriseSunset();
+        sunriseSunset.setSunrise(sunriseSunsetDTO.sunrise());
+        sunriseSunset.setSunset(sunriseSunsetDTO.sunset());
+
+        sunriseSunsetRepository.save(sunriseSunset);
+
+        return convertToSunriseSunsetDTO(sunriseSunset);
+    }
+
+    public SunriseSunsetDTO updateSunriseSunset(Long id, SunriseSunsetDTO updatedSunriseSunsetDTO) {
+        Optional<SunriseSunset> existingSunriseSunset = sunriseSunsetRepository.findById(id);
+
+        if (existingSunriseSunset.isPresent()) {
+            SunriseSunset updatedSunriseSunset = existingSunriseSunset.get();
+            updatedSunriseSunset.setSunrise(updatedSunriseSunsetDTO.sunrise());
+            updatedSunriseSunset.setSunset(updatedSunriseSunsetDTO.sunset());
+            sunriseSunsetRepository.save(updatedSunriseSunset);
+
+            return convertToSunriseSunsetDTO(updatedSunriseSunset);
+        }
+
+        throw new NoSuchElementException("Sunrise not found");
+    }
+
+    public void deleteSunriseSunset(Long id) {
+        SunriseSunset sunriseSunsetToDelete = sunriseSunsetRepository.findById(id)
+                        .orElseThrow(() -> new NoSuchElementException("SunriseSunset with id: " + id + "not found"));
+
+        sunriseSunsetRepository.delete(sunriseSunsetToDelete);
     }
 }
