@@ -1,14 +1,12 @@
 package com.codecool.solarwatch.model.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.time.ZonedDateTime;
 
 @Entity
-@Getter
-@Setter
+@Data
 public class SunriseSunset {
 
     @Id
