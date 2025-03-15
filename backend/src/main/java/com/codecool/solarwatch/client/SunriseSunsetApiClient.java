@@ -1,19 +1,22 @@
 package com.codecool.solarwatch.client;
 
 import com.codecool.solarwatch.model.dto.SunriseSunsetResponseDTO;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 public class SunriseSunsetApiClient {
     private final WebClient webClient;
+    private final String baseUrl;
 
-    public SunriseSunsetApiClient(WebClient webClient) {
+    public SunriseSunsetApiClient(WebClient webClient, @Value("${SUNRISESUNSET_BASE_URL}") String baseUrl) {
         this.webClient = webClient;
+        this.baseUrl = baseUrl;
     }
 
     /**
@@ -29,7 +32,7 @@ public class SunriseSunsetApiClient {
 
     public SunriseSunsetResponseDTO getSunriseSunsetByCoordinates(double lat, double lng, String date, String tzid, int formatted) {
 
-        String url = UriComponentsBuilder.fromUriString("https://api.sunrise-sunset.org/json")
+        String url = UriComponentsBuilder.fromUriString(baseUrl)
                 .queryParam("lat", lat)
                 .queryParam("lng", lng)
                 .queryParam("date", date)
@@ -46,7 +49,7 @@ public class SunriseSunsetApiClient {
                     .bodyToMono(SunriseSunsetResponseDTO.class)
                     .block();
 
-        } catch (HttpClientErrorException ex) {
+        } catch (WebClientResponseException ex) {
             throw new ResponseStatusException(ex.getStatusCode(), ex.getResponseBodyAsString());
         }
     }
