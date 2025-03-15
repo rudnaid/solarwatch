@@ -20,7 +20,6 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
-@Transactional
 public class SolarWatchService {
     private final GeoCodingApiClient geoCodingApiClient;
     private final SunriseSunsetApiClient sunriseSunsetApiClient;
@@ -43,9 +42,11 @@ public class SolarWatchService {
      */
 
     private City getCityByName(String cityName) {
-        Optional<City> city = cityRepository.findByName(cityName);
-
-        return city.orElseGet(() -> createCityFromGeoCodingResponse(cityName));
+        return cityRepository.findByName(cityName)
+                .orElseGet(() -> {
+                    City newCity = createCityFromGeoCodingResponse(cityName);
+                    return cityRepository.findByName(cityName).orElse(newCity);
+                });
     }
 
 
@@ -75,9 +76,9 @@ public class SolarWatchService {
     /**
      * Call external API to get sunrise/sunset data for a City and save the results to database.
      *
-     * @param city City entity.
-     * @param tzid Time Zone ID.
-     * @param date Date of the requested sunrise/sunset data.
+     * @param city      City entity.
+     * @param tzid      Time Zone ID.
+     * @param date      Date of the requested sunrise/sunset data.
      * @param formatted Date formatting options.
      * @return SunriseSunset entity.
      */
@@ -98,7 +99,7 @@ public class SolarWatchService {
     /**
      * Convert City and SunriseSunset entities to a response DTO.
      *
-     * @param city City entity.
+     * @param city          City entity.
      * @param sunriseSunset SunriseSunset entity.
      * @return CityResponseDTO, containing the cities name, country and sunrise/sunset data.
      */
@@ -151,9 +152,9 @@ public class SolarWatchService {
     /**
      * Get sunrise/sunset data on a given date for a city. Searches database for existing data and calls external API if no data was found.
      *
-     * @param cityName Name of the city.
-     * @param date Date of sunrise/sunset.
-     * @param tzid Time Zone ID.
+     * @param cityName  Name of the city.
+     * @param date      Date of sunrise/sunset.
+     * @param tzid      Time Zone ID.
      * @param formatted Date formatting options
      * @return CityResponseDTO, containing the cities name, country and sunrise/sunset data.
      */
@@ -189,23 +190,20 @@ public class SolarWatchService {
     }
 
     public SunriseSunsetDTO updateSunriseSunset(Long id, SunriseSunsetDTO updatedSunriseSunsetDTO) {
-        Optional<SunriseSunset> existingSunriseSunset = sunriseSunsetRepository.findById(id);
+        SunriseSunset sunriseSunset = sunriseSunsetRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("SunriseSunset not found"));
 
-        if (existingSunriseSunset.isPresent()) {
-            SunriseSunset updatedSunriseSunset = existingSunriseSunset.get();
-            updatedSunriseSunset.setSunrise(updatedSunriseSunsetDTO.sunrise());
-            updatedSunriseSunset.setSunset(updatedSunriseSunsetDTO.sunset());
-            sunriseSunsetRepository.save(updatedSunriseSunset);
+        sunriseSunset.setSunrise(updatedSunriseSunsetDTO.sunrise());
+        sunriseSunset.setSunset(updatedSunriseSunsetDTO.sunset());
+        sunriseSunsetRepository.save(sunriseSunset);
 
-            return convertToSunriseSunsetDTO(updatedSunriseSunset);
-        }
+        return convertToSunriseSunsetDTO(sunriseSunset);
 
-        throw new NoSuchElementException("Sunrise not found");
     }
 
     public void deleteSunriseSunset(Long id) {
         SunriseSunset sunriseSunsetToDelete = sunriseSunsetRepository.findById(id)
-                        .orElseThrow(() -> new NoSuchElementException("SunriseSunset with id: " + id + "not found"));
+                .orElseThrow(() -> new NoSuchElementException("SunriseSunset with id: " + id + "not found"));
 
         sunriseSunsetRepository.delete(sunriseSunsetToDelete);
     }
