@@ -66,7 +66,8 @@ public class WebSecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("user/**").permitAll()
+                        auth
+                                .requestMatchers("/api/user/**").permitAll()
                                 .requestMatchers("/api/solarwatch/times").hasRole("USER")
                                 .requestMatchers("/error").permitAll()
                                 .anyRequest().authenticated()
