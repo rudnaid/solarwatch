@@ -1,10 +1,17 @@
 import React from "react";
-import RegistrationForm from "../../Components/RegistrationForm/RegistrationFrom.jsx";
+import RegistrationForm from "../../Components/Forms/RegistrationFrom.jsx";
+import {useNavigate} from "react-router-dom";
 
 const Register = () => {
+  const navigate = useNavigate();
+
+  const handleCancel = () => {
+    navigate("/");
+  }
+
   return (
-    <div >
-      <RegistrationForm />
+    <div className="flex justify-center pt-12 min-h-screen">
+      <RegistrationForm onCancel={handleCancel} />
     </div>
   )
 }
