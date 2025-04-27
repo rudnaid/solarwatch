@@ -10,5 +10,4 @@ import java.util.Optional;
 public interface CityRepository extends JpaRepository<City, String> {
 
     Optional<City> findByName(String name);
-
 }
