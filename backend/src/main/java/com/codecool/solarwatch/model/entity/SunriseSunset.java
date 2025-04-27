@@ -21,5 +21,4 @@ public class SunriseSunset {
 
     @ManyToOne
     private City city;
-
 }

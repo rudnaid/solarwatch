@@ -21,5 +21,4 @@ public class City {
 
     @OneToMany(mappedBy = "city")
     private List<SunriseSunset> sunriseSunsets;
-
 }

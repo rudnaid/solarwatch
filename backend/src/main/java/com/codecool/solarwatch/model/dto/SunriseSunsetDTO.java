@@ -8,4 +8,5 @@ import java.time.ZonedDateTime;
 public record SunriseSunsetDTO(
         ZonedDateTime sunrise,
         ZonedDateTime sunset
-) { }
+) {
+}
