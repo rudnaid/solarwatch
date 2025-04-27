@@ -30,6 +30,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException(username));
 
         List<SimpleGrantedAuthority> roles = new ArrayList<>();
+
         for (Role role : userEntity.getRoles()) {
             roles.add(new SimpleGrantedAuthority(role.name()));
         }

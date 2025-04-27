@@ -23,9 +23,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class WebSecurityConfig {
 
     private final UserDetailsService userDetailsService;
-
     private final AuthEntryPointJwt unauthorizedHandler;
-
     private final JwtUtils jwtUtils;
 
     @Autowired
@@ -60,21 +58,20 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(unauthorizedHandler))
+        http.csrf(csrf ->
+                        csrf.disable())
+                .exceptionHandling(ex ->
+                        ex.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth
-                                .requestMatchers("/api/user/**").permitAll()
+                        auth.requestMatchers("/api/user/**").permitAll()
                                 .requestMatchers("/api/solarwatch/times").hasRole("USER")
                                 .requestMatchers("/error").permitAll()
                                 .anyRequest().authenticated()
                 );
 
         http.authenticationProvider(authenticationProvider());
-
         http.addFilterBefore(authenticationJwtTokenFilter(),
                 UsernamePasswordAuthenticationFilter.class);
 
