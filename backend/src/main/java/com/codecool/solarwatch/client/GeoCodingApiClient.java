@@ -28,7 +28,6 @@ public class GeoCodingApiClient {
      */
 
     public GeoCodingResponseDTO[] getGeoCoordinatesForCity(String city) {
-
         String url = UriComponentsBuilder.fromUriString(baseUrl)
                 .queryParam("q", city)
                 .queryParam("appid", apiKey)

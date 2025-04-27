@@ -11,6 +11,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 public class SunriseSunsetApiClient {
+
     private final WebClient webClient;
     private final String baseUrl;
 
@@ -31,7 +32,6 @@ public class SunriseSunsetApiClient {
      */
 
     public SunriseSunsetResponseDTO getSunriseSunsetByCoordinates(double lat, double lng, String date, String tzid, int formatted) {
-
         String url = UriComponentsBuilder.fromUriString(baseUrl)
                 .queryParam("lat", lat)
                 .queryParam("lng", lng)
