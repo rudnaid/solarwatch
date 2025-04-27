@@ -81,5 +81,4 @@ public class GeoCodingApiClientTest {
         assertNotNull(result);
         assertEquals(0, result.length);
     }
-
 }
