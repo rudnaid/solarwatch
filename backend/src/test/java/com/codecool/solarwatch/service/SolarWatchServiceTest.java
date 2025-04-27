@@ -2,151 +2,201 @@ package com.codecool.solarwatch.service;
 
 import com.codecool.solarwatch.client.GeoCodingApiClient;
 import com.codecool.solarwatch.client.SunriseSunsetApiClient;
+import com.codecool.solarwatch.exception.GeoCodingApiResponseException;
+import com.codecool.solarwatch.model.dto.*;
 import com.codecool.solarwatch.model.entity.City;
 import com.codecool.solarwatch.model.entity.SunriseSunset;
 import com.codecool.solarwatch.repository.CityRepository;
 import com.codecool.solarwatch.repository.SunriseSunsetRepository;
-import jakarta.transaction.Transactional;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.web.reactive.function.client.WebClient;
 
-import java.io.IOException;
 import java.time.ZonedDateTime;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
+import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
-@Transactional
 @ExtendWith(MockitoExtension.class)
-class SolarWatchServiceTest {
-
-    @InjectMocks
-    private GeoCodingApiClient geoCodingApiClient;
-
-    @Autowired
-    private SunriseSunsetApiClient sunriseSunsetApiClient;
-
-    private String apiKey = "testApiKey";
-
-    @Autowired
-    private CityRepository cityRepository;
-
-    @Autowired
-    private SunriseSunsetRepository sunriseSunsetRepository;
-
-    @Autowired
-    private SolarWatchService solarWatchService;
-
-    private MockWebServer mockWebServer;
+public class SolarWatchServiceTest {
 
     @Mock
-    private WebClient webClient;
+    private GeoCodingApiClient geoCodingApiClient;
 
-    private String baseUrl = "/";
+    @Mock
+    private SunriseSunsetApiClient sunriseSunsetApiClient;
 
-    @BeforeEach
-    void setUp() throws IOException {
-        mockWebServer = new MockWebServer();
-        mockWebServer.start();
+    @Mock
+    private CityRepository cityRepository;
 
-        webClient = Mockito.mock(WebClient.class);
+    @Mock
+    private SunriseSunsetRepository sunriseSunsetRepository;
 
-        webClient = WebClient.builder()
-                .baseUrl(mockWebServer.url("/").toString())
-                .build();
+    @InjectMocks
+    private SolarWatchService solarWatchService;
 
-        geoCodingApiClient = new GeoCodingApiClient(webClient, baseUrl, apiKey);
-    }
+    @Test
+    void createCityFromGeoCodingResponse_shouldThrow_whenApiReturnsEmpty() {
+        when(geoCodingApiClient.getGeoCoordinatesForCity("NonExistingCity")).thenReturn(new GeoCodingResponseDTO[0]);
 
-    @AfterEach
-    void tearDown() throws IOException {
-        mockWebServer.shutdown();
+        assertThrows(GeoCodingApiResponseException.class, () -> {
+            solarWatchService.createCityFromGeoCodingResponse("NonExistingCity");
+        });
     }
 
     @Test
-    void testUpdateCity() {
-        City testCity = new City();
-        testCity.setName("Test City");
-        testCity.setCountry("Test Country");
-        testCity.setLat(12.34);
-        testCity.setLon(56.78);
-        cityRepository.save(testCity);
+    void getSolarTimes_shouldFetchFromApi_whenNotInDb() {
+        ZonedDateTime sunrise = ZonedDateTime.parse("2025-04-22T06:00:00+01:00[Europe/Paris]");
+        ZonedDateTime sunset = ZonedDateTime.parse("2025-04-22T20:00:00+01:00[Europe/Paris]");
 
-        String updatedName = "Updated Test City";
-        String updatedCountry = "Updated Test Country";
+        City city = new City();
+        city.setName("Paris");
+        city.setCountry("France");
+        city.setState(null);
+        city.setLat(48.85);
+        city.setLon(2.35);
 
-        testCity.setName(updatedName);
-        testCity.setCountry(updatedCountry);
-        cityRepository.save(testCity);
+        SunriseSunset sunriseSunset = new SunriseSunset();
+        sunriseSunset.setSunrise(sunrise);
+        sunriseSunset.setSunset(sunset);
 
-        City updatedCity = cityRepository.findByName(updatedName).orElseThrow();
-        assertEquals(updatedName, updatedCity.getName());
-        assertEquals(updatedCountry, updatedCity.getCountry());
+        when(cityRepository.findByName("Paris")).thenReturn(Optional.empty());
+
+        when(geoCodingApiClient.getGeoCoordinatesForCity("Paris"))
+                .thenReturn(new GeoCodingResponseDTO[]{new GeoCodingResponseDTO("Paris", 48.85, 2.35, "FR", null)});
+
+        when(cityRepository.save(any(City.class))).thenReturn(city);
+
+        when(sunriseSunsetApiClient.getSunriseSunsetByCoordinates(anyDouble(), anyDouble(), any(), any(), anyInt()))
+                .thenReturn(new SunriseSunsetResponseDTO(new SunriseSunsetDTO(sunrise, sunset)));
+
+        when(sunriseSunsetRepository.save(any())).thenReturn(sunriseSunset);
+
+        when(sunriseSunsetRepository.findByCityAndDate(any(), any())).thenReturn(Optional.empty());
+
+        CityDetailsDTO result = solarWatchService.getSolarTimes("Paris", "2025-04-22", "Europe/Paris", 0);
+        assertEquals(ZonedDateTime.parse("2025-04-22T06:00:00+01:00[Europe/Paris]"), result.getSunriseSunset().sunrise());
     }
 
     @Test
-    void testUpdateSunriseSunset() {
-        City testCity = new City();
-        testCity.setName("Test City");
-        testCity.setCountry("Test Country");
-        testCity.setLat(12.34);
-        testCity.setLon(56.78);
-        cityRepository.save(testCity);
+    void updateCity_shouldThrow_whenCityNotFound() {
+        CityDTO dto = new CityDTO();
+        dto.setName("NonExistingCity");
+        dto.setCountry("NonExistingCountry");
 
-        SunriseSunset testSunriseSunset = new SunriseSunset();
-        testSunriseSunset.setCity(testCity);
-        testSunriseSunset.setSunrise(ZonedDateTime.parse("2025-03-15T06:12:00+00:00"));
-        testSunriseSunset.setSunset(ZonedDateTime.parse("2025-03-15T18:12:00+00:00"));
-        sunriseSunsetRepository.save(testSunriseSunset);
+        when(cityRepository.findByName("NonExistingCity")).thenReturn(Optional.empty());
 
-        ZonedDateTime updatedSunrise = ZonedDateTime.parse("2025-03-15T07:12:00+00:00");
-        ZonedDateTime updatedSunset = ZonedDateTime.parse("2025-03-15T19:12:00+00:00");
-
-        testSunriseSunset.setSunrise(updatedSunrise);
-        testSunriseSunset.setSunset(updatedSunset);
-        sunriseSunsetRepository.save(testSunriseSunset);
-
-        SunriseSunset updatedSunriseSunset = sunriseSunsetRepository.findById(testSunriseSunset.getId()).orElseThrow();
-        assertEquals(updatedSunrise, updatedSunriseSunset.getSunrise());
-        assertEquals(updatedSunset, updatedSunriseSunset.getSunset());
+        assertThrows(NoSuchElementException.class, () -> solarWatchService.updateCity(dto));
     }
 
     @Test
-    void testCreateCityFromGeoCodingResponse() {
-        String cityName = "TestCity";
-        String jsonResponse = """
-                [
-                    {
-                        "name": "TestCity",
-                        "lat": 1.1,
-                        "lon": 1.1,
-                        "country": "TestCountry",
-                        "state": "TestState",
-                    }
-                ]
-                """;
+    void deleteCity_shouldThrow_whenCityNotFound() {
+        when(cityRepository.findByName("Atlantis")).thenReturn(Optional.empty());
 
-        mockWebServer.enqueue(new MockResponse()
-                .setBody(jsonResponse)
-                .addHeader("Content-Type", "application/json"));
+        assertThrows(NoSuchElementException.class, () -> {
+            CityDTO dto = new CityDTO();
+            dto.setName("Atlantis");
+            dto.setCountry("ZZ");
 
-        City result = solarWatchService.createCityFromGeoCodingResponse(cityName);
+            solarWatchService.deleteCity(dto);
 
-        assertEquals("TestCity", result.getName());
-        assertEquals("TestCountry", result.getCountry());
-        assertEquals("TestState", result.getState());
-        assertEquals(1.1, result.getLat());
-        assertEquals(1.1, result.getLon());
+        });
+    }
+
+    @Test
+    void createSunriseSunset_shouldSaveAndReturnDTO() {
+        ZonedDateTime sunrise = ZonedDateTime.parse("2023-04-22T05:00:00+00:00[UTC]");
+        ZonedDateTime sunset = ZonedDateTime.parse("2023-04-22T20:00:00+00:00[UTC]");
+
+        SunriseSunsetDTO inputDTO = new SunriseSunsetDTO(sunrise, sunset);
+        SunriseSunset savedEntity = new SunriseSunset();
+        savedEntity.setSunrise(sunrise);
+        savedEntity.setSunset(sunset);
+
+        when(sunriseSunsetRepository.save(any(SunriseSunset.class))).thenReturn(savedEntity);
+
+        SunriseSunsetDTO result = solarWatchService.createSunriseSunset(inputDTO);
+
+        assertEquals(sunrise, result.sunrise());
+        assertEquals(sunset, result.sunset());
+    }
+
+    @Test
+    void updateSunriseSunset_shouldThrow_whenIdNotFound() {
+        when(sunriseSunsetRepository.findById(123L)).thenReturn(Optional.empty());
+
+        SunriseSunsetDTO updateDTO = new SunriseSunsetDTO(
+                ZonedDateTime.now(), ZonedDateTime.now()
+        );
+
+        assertThrows(NoSuchElementException.class, () ->
+                solarWatchService.updateSunriseSunset(123L, updateDTO)
+        );
+    }
+
+    @Test
+    void deleteSunriseSunset_shouldThrow_whenIdNotFound() {
+        when(sunriseSunsetRepository.findById(456L)).thenReturn(Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () ->
+                solarWatchService.deleteSunriseSunset(456L)
+        );
+    }
+
+    @Test
+    void updateCity_shouldUpdateAndReturnCityDTO() {
+        City existingCity = new City();
+        existingCity.setName("OldName");
+        existingCity.setCountry("OldCountry");
+
+        CityDTO updatedDTO = new CityDTO();
+        updatedDTO.setName("NewName");
+        updatedDTO.setCountry("NewCountry");
+
+        when(cityRepository.findByName("NewName")).thenReturn(Optional.of(existingCity));
+        when(cityRepository.save(any(City.class))).thenReturn(existingCity);
+
+        CityDTO result = solarWatchService.updateCity(updatedDTO);
+
+        assertEquals("NewName", result.getName());
+        assertEquals("NewCountry", result.getCountry());
+    }
+
+    @Test
+    void updateSunriseSunset_shouldUpdateAndReturnDTO() {
+        ZonedDateTime sunrise = ZonedDateTime.parse("2025-04-22T05:00:00+00:00[UTC]");
+        ZonedDateTime sunset = ZonedDateTime.parse("2025-04-22T21:00:00+00:00[UTC]");
+
+        SunriseSunset existing = new SunriseSunset();
+        existing.setSunrise(ZonedDateTime.parse("2025-04-22T04:00:00+00:00[UTC]"));
+        existing.setSunset(ZonedDateTime.parse("2025-04-22T20:00:00+00:00[UTC]"));
+
+        SunriseSunsetDTO updatedDTO = new SunriseSunsetDTO(sunrise, sunset);
+
+        when(sunriseSunsetRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(sunriseSunsetRepository.save(existing)).thenReturn(existing);
+
+        SunriseSunsetDTO result = solarWatchService.updateSunriseSunset(1L, updatedDTO);
+
+        assertEquals(sunrise, result.sunrise());
+        assertEquals(sunset, result.sunset());
+    }
+
+    @Test
+    void deleteSunriseSunset_shouldDeleteSuccessfully() {
+        SunriseSunset sunriseSunset = new SunriseSunset();
+
+        when(sunriseSunsetRepository.findById(999L)).thenReturn(Optional.of(sunriseSunset));
+
+        solarWatchService.deleteSunriseSunset(999L);
+
+        Mockito.verify(sunriseSunsetRepository).delete(sunriseSunset);
     }
 }
