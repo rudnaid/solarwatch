@@ -1,5 +1,7 @@
-import { useState } from "react"
+import React, { useState } from "react"
 import { registerUser } from "../../Service/apiService.js";
+import UsernameInputField from "../InputFields/UsernameInputField.jsx";
+import PasswordInputField from "../InputFields/PasswordInputField.jsx";
 
 const RegistrationForm = ({ user, onCancel }) => {
   const [username, setUsername] = useState(user?.username || '');
@@ -38,28 +40,24 @@ const RegistrationForm = ({ user, onCancel }) => {
     <form className="registration-form" onSubmit={onSubmit}>
       {errorMessage && <div className="error-message">{errorMessage}</div>}
       {successMessage && <div className="success-message">{successMessage}</div>}
-      <div className="control">
-        <label htmlFor="username">Username:</label>
-        <input
-          id="username"
-          name="username"
+      <div>
+
+        <h1 className="flex justify-center gap-4 mt-4">Register a new user</h1>
+
+        <UsernameInputField
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
-      </div>
-      <div className="control">
-        <label htmlFor="password">Password:</label>
-        <input
-          id="password"
-          name="password"
-          type="password"
+
+        <PasswordInputField
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+
       </div>
-      <div className="buttons">
-        <button type="submit">Register</button>
-        <button type="button" onClick={onCancel}>Cancel</button>
+      <div className="flex justify-center gap-4 mt-4">
+        <button className="btn btn-soft btn-success" type="submit">Register</button>
+        <button className="btn btn-soft btn-secondary" type="button" onClick={onCancel}>Cancel</button>
       </div>
     </form>
   );
