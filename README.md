@@ -30,6 +30,7 @@
 ![Screenshot 2025-04-27 at 19 01 28](https://github.com/user-attachments/assets/dcbafea8-edc6-4bc7-8fe7-700c140512b0)
 
 The entire application is containerized using **Docker Compose**, enabling seamless **deployment** and **scalability**.
+CI pipeline via *GitHub Actions** ensures code stabilty by running automated tests upon push and pull requests.
   
 ## Built With
 
