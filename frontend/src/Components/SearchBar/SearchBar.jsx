@@ -1,6 +1,8 @@
 import {useState} from "react";
+import SearchInputField from "../InputFields/SearchInputField.jsx";
+import DateInputField from "../InputFields/DateInputField.jsx";
 
-export const SearchBar = ({ onSearch }) => {
+const SearchBar = ({onSearch}) => {
   const [city, setCity] = useState('');
   const [date, setDate] = useState('');
 
@@ -20,19 +22,23 @@ export const SearchBar = ({ onSearch }) => {
   }
 
   return (
-    <form className="search-bar" onSubmit={handleSubmit}>
-      <input
-        type="text"
-        placeholder="Search for a city"
+    <form className="flex flex-col items-center space-y-4" onSubmit={handleSubmit}>
+
+      <SearchInputField
+        placeholder={"Enter a city"}
         value={city}
         onChange={handleInputChange}
       />
-      <input
-        type="date"
+
+      <DateInputField
         value={date}
         onChange={handleDateChange}
       />
-      <button className="search-button" type="submit">GO!</button>
+
+      <button className="btn btn-soft btn-success" type="submit">Go</button>
+
     </form>
   );
 }
+
+export default SearchBar;
