@@ -2,8 +2,10 @@ import React, { useState } from "react"
 import { registerUser } from "../../Service/apiService.js";
 import UsernameInputField from "../InputFields/UsernameInputField.jsx";
 import PasswordInputField from "../InputFields/PasswordInputField.jsx";
+import {useNavigate} from "react-router-dom";
 
 const RegistrationForm = ({ user, onCancel }) => {
+  const navigate = useNavigate();
   const [username, setUsername] = useState(user?.username || '');
   const [password, setPassword] = useState(user?.password || '');
   const [errorMessage, setErrorMessage] = useState('');
@@ -22,10 +24,11 @@ const RegistrationForm = ({ user, onCancel }) => {
     try {
       const response = await registerUser({ username, password });
 
-      if (response && response.status === 201) {
+      if (response && response.status === 200) {
         setSuccessMessage("Registration successful!");
         setUsername('');
         setPassword('');
+        navigate('/login');
       } else {
         setErrorMessage("Registration failed. Please try again.");
       }
