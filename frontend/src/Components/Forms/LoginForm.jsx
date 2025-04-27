@@ -3,6 +3,8 @@ import {useState} from "react";
 import {loginUser} from "../../Service/apiService.js";
 import {useNavigate} from "react-router-dom";
 import {useAuth} from "../../Context/AuthContext.jsx";
+import UsernameInputField from "../InputFields/UsernameInputField.jsx";
+import PasswordInputField from "../InputFields/PasswordInputField.jsx";
 
 const LoginForm = ({onCancel}) => {
   const {login} = useAuth();
@@ -26,37 +28,28 @@ const LoginForm = ({onCancel}) => {
   }
 
   return (
-    <form className="login-form" onSubmit={handleLogin}>
-      <div className="control">
-        <label htmlFor="username">Username:</label>
-        <input
-          type="text"
-          placeholder="Enter username"
-          className="input"
-          id="username"
-          name="username"
+    <form onSubmit={handleLogin}>
+      <div>
+
+        <h1 className="flex justify-center gap-4 mt-4">Login to SolarWatch</h1>
+
+        <UsernameInputField
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
-        <label htmlFor="password">Password:</label>
-        <input
-          type="text"
-          placeholder="Enter password"
-          className="input"
-          id="password"
-          name="password"
+
+        <PasswordInputField
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+
       </div>
-      <div className="buttons">
-        <button type="submit">
-          Login
-        </button>
-        <button type="button" onClick={onCancel}>
-          Cancel
-        </button>
+
+      <div className="flex justify-center gap-4 mt-4">
+        <button className="btn btn-soft btn-success" type="submit">Login</button>
+        <button className="btn btn-soft btn-secondary" type="button" onClick={onCancel}>Cancel</button>
       </div>
+
     </form>
   )
 }
