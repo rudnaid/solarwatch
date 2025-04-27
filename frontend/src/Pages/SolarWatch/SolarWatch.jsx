@@ -47,18 +47,19 @@ export const SolarWatch = () => {
   );
 
   return (
-    <div>
-      <div>
-        <SearchBar onSearch={handleSearch} />
+    <div className="container mx-auto px-4 py-8 bg-base-100">
+
+      <div className="mb-8">
+        <SolarWatchContent
+          searchCompleted={searchCompleted}
+          solarData={solarData}
+        />
       </div>
 
-      <div>
-        <div>City: {city}</div>
-        <div>Country: {country}</div>
-        <div>Sunrise: {sunrise}</div>
-        <div>Sunset: {sunset}</div>
+      <div className="max-w-lg mx-auto mb-8">
+        <SearchBar onSearch={handleSearch}/>
       </div>
 
     </div>
-  )
+  );
 };
