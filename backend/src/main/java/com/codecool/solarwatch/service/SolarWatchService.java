@@ -247,7 +247,7 @@ public class SolarWatchService {
     /**
      * Get City entity based on the name of the city.
      * Searches the database for an existing city. If no city is found, it calls {@link #createCityFromGeoCodingResponse}
-     * to retrieve data from an external API and creates a new City entity.
+     * to retrieve data from an external API, creates a new City entity and saves it to the database.
      *
      * @param cityName Name of the city to search for.
      * @return City entity containing the name, country, state, latitude, and longitude data.
@@ -257,7 +257,7 @@ public class SolarWatchService {
                 .orElseGet(() -> {
                     City newCity = createCityFromGeoCodingResponse(cityName);
 
-                    return cityRepository.findByName(cityName).orElse(newCity);
+                    return cityRepository.save(newCity);
                 });
     }
 }
