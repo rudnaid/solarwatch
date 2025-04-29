@@ -18,6 +18,8 @@
 
 **SolarWatch** is a web application that provides accurate **sunrise** and **sunset** times for any specified **city** and **date**. To maximize **efficiency** and reduce redundant **external API calls**, it utilizes a local **database** to **cache** frequently requested data. If the requested information is not available locally, **SolarWatch** automatically **fetches** it from an **external API** and **stores** it for future use, ensuring **fast** and **reliable** responses for subsequent requests.
 
+![Screenshot 2025-04-29 at 12 22 31](https://github.com/user-attachments/assets/85170ce0-c1d3-441c-96a7-8e677bb3d554)
+
 ### Features
 
   - **City/date lookup** with accurate sunrise and sunset data
@@ -26,6 +28,7 @@
 
 The entire application is containerized using **Docker Compose**, enabling seamless **deployment** and **scalability**.
 CI pipeline via *GitHub Actions* ensures code stability by running automated tests upon push and pull requests.
+
   
 ## Built With
 
