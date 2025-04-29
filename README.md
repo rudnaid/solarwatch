@@ -1,7 +1,5 @@
 # SolarWatch
 
-*Track sunrise and sunset times with a modern full-stack app.*
-
 <details>
 <summary><h2><strong>Table of Contents</strong></h2></summary>
   
