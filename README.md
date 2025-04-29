@@ -1,13 +1,12 @@
-# Solarwatch
+# SolarWatch
 
 *Track sunrise and sunset times with a modern full-stack app.*
 
 <details>
-<summary><h2><strong>Table of Contents</strong><h2></summary>
+<summary><h2><strong>Table of Contents</strong></h2></summary>
   
 - [About the Project](#about-the-project)
 - [Built With](#built-with)
-- [Contributors](#contributors)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation Steps](#installation-steps)
@@ -28,6 +27,7 @@
   - **Secure authentication** with role-based access
 
 The entire application is containerized using **Docker Compose**, enabling seamless **deployment** and **scalability**.
+CI pipeline via *GitHub Actions* ensures code stability by running automated tests upon push and pull requests.
   
 ## Built With
 
