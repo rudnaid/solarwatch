@@ -42,7 +42,7 @@ public class SolarWatchController {
     @PostMapping("/cities")
     @PreAuthorize("hasRole('ADMIN')")
     public void addCity(@RequestBody CityDTO city) {
-        solarWatchService.createCityFromGeoCodingResponse(city.getName());
+        solarWatchService.createCityFromGeoCodingResponse(city.name());
     }
 
     @PutMapping("/cities")
