@@ -1,9 +1,7 @@
 package com.codecool.solarwatch.model.payload;
 
-import lombok.Data;
-
-@Data
-public class UserRequest {
-    private String username;
-    private String password;
+public record UserRequest(
+        String username,
+        String password
+) {
 }
