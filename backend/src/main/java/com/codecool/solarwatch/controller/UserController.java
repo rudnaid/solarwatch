@@ -34,7 +34,7 @@ public class UserController {
     @PutMapping("/promote")
     @PreAuthorize("hasRole('ADMIN')")
     public void promoteToAdmin(@RequestBody UserPromotionRequest promotionRequest) {
-        userService.promoteToAdmin(promotionRequest.getUsername());
+        userService.promoteToAdmin(promotionRequest.username());
     }
 
     @GetMapping("/me")
