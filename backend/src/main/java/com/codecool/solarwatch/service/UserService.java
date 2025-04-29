@@ -41,16 +41,16 @@ public class UserService {
      * @throws IllegalArgumentException if the username already exists.
      */
     public void createUser(UserRequest registerRequest) {
-        Optional<UserEntity> existingUser = userRepository.findByUsername(registerRequest.getUsername());
+        Optional<UserEntity> existingUser = userRepository.findByUsername(registerRequest.username());
 
         if (existingUser.isPresent()) {
-            throw new IllegalArgumentException("Username: " + registerRequest.getUsername() + " already exists");
+            throw new IllegalArgumentException("Username: " + registerRequest.username() + " already exists");
         }
 
         UserEntity user = new UserEntity();
 
-        user.setUsername(registerRequest.getUsername());
-        user.setPassword(encoder.encode(registerRequest.getPassword()));
+        user.setUsername(registerRequest.username());
+        user.setPassword(encoder.encode(registerRequest.password()));
 
         Set<Role> roles = new HashSet<>();
         roles.add(Role.ROLE_USER);
@@ -67,8 +67,8 @@ public class UserService {
      */
     public JwtResponse authenticateUser(UserRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                loginRequest.getUsername(),
-                loginRequest.getPassword()));
+                loginRequest.username(),
+                loginRequest.password()));
 
         SecurityContextHolder.getContext()
                 .setAuthentication(authentication);
