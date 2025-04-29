@@ -97,19 +97,19 @@ public class SolarWatchService {
      * @throws NoSuchElementException if the city is not found.
      */
     public CityDTO updateCity(CityDTO city) {
-        Optional<City> existingCity = cityRepository.findByName(city.getName());
+        Optional<City> existingCity = cityRepository.findByName(city.name());
 
         if (existingCity.isPresent()) {
             City cityToUpdate = existingCity.get();
-            cityToUpdate.setName(city.getName());
-            cityToUpdate.setCountry(city.getCountry());
+            cityToUpdate.setName(city.name());
+            cityToUpdate.setCountry(city.country());
 
             cityRepository.save(cityToUpdate);
 
             return convertToCityDTO(cityToUpdate);
         }
 
-        throw new NoSuchElementException("City: " + city.getName() + " not found in database");
+        throw new NoSuchElementException("City: " + city.name() + " not found in database");
     }
 
     /**
@@ -119,8 +119,8 @@ public class SolarWatchService {
      * @throws NoSuchElementException if the city is not found.
      */
     public void deleteCity(CityDTO city) {
-        City cityToDelete = cityRepository.findByName(city.getName())
-                .orElseThrow(() -> new NoSuchElementException("City: " + city.getName() + " not found in database"));
+        City cityToDelete = cityRepository.findByName(city.name())
+                .orElseThrow(() -> new NoSuchElementException("City: " + city.name() + " not found in database"));
 
         cityRepository.delete(cityToDelete);
     }
@@ -199,11 +199,10 @@ public class SolarWatchService {
      * @return CityDTO, containing the city's name and country.
      */
     private CityDTO convertToCityDTO(City city) {
-        CityDTO cityDTO = new CityDTO();
-        cityDTO.setName(city.getName());
-        cityDTO.setCountry(city.getCountry());
-
-        return cityDTO;
+        return new CityDTO(
+                city.getName(),
+                city.getCountry()
+        );
     }
 
     /**
@@ -224,14 +223,13 @@ public class SolarWatchService {
      * @return CityDetailsDTO, containing the city's name, country, and sunrise/sunset data.
      */
     private CityDetailsDTO convertToCityDetailsDTO(City city, SunriseSunset sunriseSunset) {
-        CityDetailsDTO cityDetailsDTO = new CityDetailsDTO();
-        cityDetailsDTO.setName(city.getName());
-        cityDetailsDTO.setCountry(city.getCountry());
-
         SunriseSunsetDTO sunriseSunsetDTO = convertToSunriseSunsetDTO(sunriseSunset);
-        cityDetailsDTO.setSunriseSunset(sunriseSunsetDTO);
 
-        return cityDetailsDTO;
+        return new CityDetailsDTO(
+                city.getName(),
+                city.getCountry(),
+                sunriseSunsetDTO
+        );
     }
 
     /**
