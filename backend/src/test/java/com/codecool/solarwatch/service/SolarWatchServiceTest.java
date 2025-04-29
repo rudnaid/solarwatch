@@ -12,9 +12,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -22,7 +22,7 @@ import java.util.Optional;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class SolarWatchServiceTest {
@@ -49,6 +49,8 @@ public class SolarWatchServiceTest {
         assertThrows(GeoCodingApiResponseException.class, () -> {
             solarWatchService.createCityFromGeoCodingResponse("NonExistingCity");
         });
+        
+        verify(geoCodingApiClient).getGeoCoordinatesForCity("NonExistingCity");
     }
 
     @Test
@@ -67,7 +69,9 @@ public class SolarWatchServiceTest {
         sunriseSunset.setSunrise(sunrise);
         sunriseSunset.setSunset(sunset);
 
-        when(cityRepository.findByName("Paris")).thenReturn(Optional.empty());
+        when(cityRepository.findByName("Paris"))
+            .thenReturn(Optional.empty())
+            .thenReturn(Optional.of(city));
 
         when(geoCodingApiClient.getGeoCoordinatesForCity("Paris"))
                 .thenReturn(new GeoCodingResponseDTO[]{new GeoCodingResponseDTO("Paris", 48.85, 2.35, "FR", null)});
@@ -82,18 +86,24 @@ public class SolarWatchServiceTest {
         when(sunriseSunsetRepository.findByCityAndDate(any(), any())).thenReturn(Optional.empty());
 
         CityDetailsDTO result = solarWatchService.getSolarTimes("Paris", "2025-04-22", "Europe/Paris", 0);
-        assertEquals(ZonedDateTime.parse("2025-04-22T06:00:00+01:00[Europe/Paris]"), result.getSunriseSunset().sunrise());
+        assertEquals(ZonedDateTime.parse("2025-04-22T06:00:00+01:00[Europe/Paris]"), result.sunriseSunset().sunrise());
+
+        verify(cityRepository, atLeastOnce()).save(any(City.class));
+        verify(geoCodingApiClient).getGeoCoordinatesForCity("Paris");
+        verify(sunriseSunsetRepository).findByCityAndDate(any(City.class), eq(LocalDate.parse("2025-04-22")));
+        verify(sunriseSunsetApiClient).getSunriseSunsetByCoordinates(eq(48.85), eq(2.35), eq("2025-04-22"), eq("Europe/Paris"), eq(0));
+        verify(sunriseSunsetRepository).save(any(SunriseSunset.class));
     }
 
     @Test
     void updateCity_shouldThrow_whenCityNotFound() {
-        CityDTO dto = new CityDTO();
-        dto.setName("NonExistingCity");
-        dto.setCountry("NonExistingCountry");
+        CityDTO dto = new CityDTO("NonExistingCity", "NonExistingCountry");
 
         when(cityRepository.findByName("NonExistingCity")).thenReturn(Optional.empty());
 
         assertThrows(NoSuchElementException.class, () -> solarWatchService.updateCity(dto));
+        
+        verify(cityRepository).findByName("NonExistingCity");
     }
 
     @Test
@@ -101,13 +111,13 @@ public class SolarWatchServiceTest {
         when(cityRepository.findByName("Atlantis")).thenReturn(Optional.empty());
 
         assertThrows(NoSuchElementException.class, () -> {
-            CityDTO dto = new CityDTO();
-            dto.setName("Atlantis");
-            dto.setCountry("ZZ");
+            CityDTO dto = new CityDTO("Atlantis", "ZZ");
 
             solarWatchService.deleteCity(dto);
 
         });
+        
+        verify(cityRepository).findByName("Atlantis");
     }
 
     @Test
@@ -126,6 +136,8 @@ public class SolarWatchServiceTest {
 
         assertEquals(sunrise, result.sunrise());
         assertEquals(sunset, result.sunset());
+        
+        verify(sunriseSunsetRepository).save(any(SunriseSunset.class));
     }
 
     @Test
@@ -139,6 +151,8 @@ public class SolarWatchServiceTest {
         assertThrows(NoSuchElementException.class, () ->
                 solarWatchService.updateSunriseSunset(123L, updateDTO)
         );
+        
+        verify(sunriseSunsetRepository).findById(123L);
     }
 
     @Test
@@ -148,6 +162,8 @@ public class SolarWatchServiceTest {
         assertThrows(NoSuchElementException.class, () ->
                 solarWatchService.deleteSunriseSunset(456L)
         );
+        
+        verify(sunriseSunsetRepository).findById(456L);
     }
 
     @Test
@@ -156,17 +172,18 @@ public class SolarWatchServiceTest {
         existingCity.setName("OldName");
         existingCity.setCountry("OldCountry");
 
-        CityDTO updatedDTO = new CityDTO();
-        updatedDTO.setName("NewName");
-        updatedDTO.setCountry("NewCountry");
+        CityDTO updatedDTO = new CityDTO("NewName", "NewCountry");
 
         when(cityRepository.findByName("NewName")).thenReturn(Optional.of(existingCity));
         when(cityRepository.save(any(City.class))).thenReturn(existingCity);
 
         CityDTO result = solarWatchService.updateCity(updatedDTO);
 
-        assertEquals("NewName", result.getName());
-        assertEquals("NewCountry", result.getCountry());
+        assertEquals("NewName", result.name());
+        assertEquals("NewCountry", result.country());
+        
+        verify(cityRepository).findByName("NewName");
+        verify(cityRepository).save(existingCity);
     }
 
     @Test
@@ -187,6 +204,9 @@ public class SolarWatchServiceTest {
 
         assertEquals(sunrise, result.sunrise());
         assertEquals(sunset, result.sunset());
+        
+        verify(sunriseSunsetRepository).findById(1L);
+        verify(sunriseSunsetRepository).save(existing);
     }
 
     @Test
@@ -197,6 +217,7 @@ public class SolarWatchServiceTest {
 
         solarWatchService.deleteSunriseSunset(999L);
 
-        Mockito.verify(sunriseSunsetRepository).delete(sunriseSunset);
+        verify(sunriseSunsetRepository).findById(999L);
+        verify(sunriseSunsetRepository).delete(sunriseSunset);
     }
 }
